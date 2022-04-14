@@ -120,16 +120,21 @@ django_heroku.settings(locals())
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'
 }
+# SMTP email stuff
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'mahinma181@gmail.com'
+EMAIL_HOST_PASSWORD = '*****************'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 
-# email stuff
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_TLS = True
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
-EMAIL_PORT = 578
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD ')
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 578
+# EMAIL_HOST_USER = 'mahinma181@gmail.com'
+# EMAIL_HOST_PASSWORD = '01677885250m'
+# EMAIL_USE_TLS = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
