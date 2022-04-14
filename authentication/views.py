@@ -7,10 +7,10 @@ from validate_email import validate_email
 from django.contrib import messages
 from django.core.mail import EmailMessage
 from django.conf import settings
-# from django.contrib import auth
+from django.contrib import auth
 from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from .utils import token_generator
 
@@ -101,4 +101,15 @@ class RegistrationView(View):
 
 class VerificationView(View):
     def get(self, request, uidb64, token):
+
+        try:
+            id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=id)
+        except Exception as ex:
+            pass
         return redirect('login')
+
+
+class LoginView(View):
+    def get(self, request):
+        return redirect(request, 'authentication/login.html')
