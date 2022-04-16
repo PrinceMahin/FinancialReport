@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'expenses',
+    'userpreferences',
 ]
 
 MIDDLEWARE = [
@@ -123,7 +124,7 @@ MESSAGE_TAGS = {
 # SMTP email stuff
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'mahinma181@gmail.com'
-EMAIL_HOST_PASSWORD = '********'
+EMAIL_HOST_PASSWORD = '01677885250m'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
