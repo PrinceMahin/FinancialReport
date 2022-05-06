@@ -149,3 +149,17 @@ class LogoutView(View):
         auth.logout(request)
         messages.success(request, 'You have been logged out')
         return redirect('login')
+
+
+class RequestPasswordResetEmail(View):
+    def get(self, request):
+        return render(request, 'authentication/reset-password.html')
+
+    def post(self, request):
+
+        email = request.POST['email']
+
+        if not validate_email(email):
+            messages.error(request, 'Please supply a valid email')
+
+        return render(request, 'authentication/reset-password.html')
