@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.views import View
 import json
 from django.http import JsonResponse
-from django.contrib.auth.models import User
 from validate_email import validate_email
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -14,6 +13,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .utils import token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
 # from django.template.loader import render_to_string
@@ -156,10 +156,94 @@ class RequestPasswordResetEmail(View):
         return render(request, 'authentication/reset-password.html')
 
     def post(self, request):
-
         email = request.POST['email']
+
+        context = {
+            'values': request.POST
+        }
 
         if not validate_email(email):
             messages.error(request, 'Please supply a valid email')
+            return render(request, 'authentication/reset-password.html', context)
+
+        current_site = get_current_site(request)
+        user = User.objects.filter(email=email)
+
+        if user.exists():
+            email_contents = {
+                'user': user[0],
+                'domain': current_site.domain,
+                'uid': urlsafe_base64_encode(force_bytes(user[0].pk)),
+                'token': PasswordResetTokenGenerator().make_token(user[0])
+            }
+            link = reverse('reset-user-password', kwargs={
+                'uidb64': email_contents['uid'], 'token': token_generator.make_token(user[0])})
+
+            reset_url = 'http://' + current_site.domain + link
+
+            email_subject = 'Password Rest'
+            email_body = 'Hi \n ' 'THERE'  ' Please Use this link to Reset-password of your account \n' \
+                         + reset_url
+
+            email = EmailMessage(
+                email_subject,
+                email_body,
+                settings.EMAIL_HOST_USER,
+                ['dontreply@gmail.com'],
+                [email],
+            )
+            email.send(fail_silently=False)
+            messages.success(request, ' we have sent you an email to rest ur password')
+        else:
+
+            messages.success(request, ' we have sent you an email to rest ur password')
 
         return render(request, 'authentication/reset-password.html')
+
+
+class CompletePasswordReset(View):
+    def get(self, request, uidb64, token):
+        context = {
+            'uidb64': uidb64,
+            'token': token
+        }
+        # try:
+        #     user_id = force_str(urlsafe_base64_decode(uidb64))
+        #     user = User.objects.get(pk=user_id)
+        #
+        #     if not PasswordResetTokenGenerator().check_token(user, token):
+        #         messages.info(request, ' This Link is old , Use The new link')
+        #         return render(request, 'authentication/reset-password.html')
+        #
+        # except Exception as identifier:
+        #
+        #     pass
+        #
+
+        return render(request, 'authentication/set-newpassword.html', context)
+
+    def post(self, request, uidb64, token):
+        context = {
+            'uidb64': uidb64,
+            'token': token
+        }
+
+        password = request.POST['password']
+        password2 = request.POST['password2']
+
+        if password != password2:
+            messages.error(request, 'password is not matching')
+        if len(password) < 6:
+            messages.error(request, 'password is too short')
+            return render(request, 'authentication/set-newpassword.html', context)
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=user_id)
+            user.set_password(password)
+            user.save()
+            messages.success(request, ' password rest successfull, Use New Password')
+            return redirect('login')
+        except Exception as identifier:
+            messages.info(request, ' Something is Wrong')
+            return render(request, 'authentication/set-newpassword.html', context)
