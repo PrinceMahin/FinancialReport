@@ -1,3 +1,4 @@
+import xlwt
 from django.shortcuts import render, redirect
 from .models import Source, UserIncome
 from django.core.paginator import Paginator
@@ -5,7 +6,7 @@ from userpreferences.models import UserPreference
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import datetime
 
 
@@ -115,24 +116,24 @@ def delete_income(request, id):
 def income_source_summary(request):
     todays_date = datetime.date.today()
     six_months_ago = todays_date - datetime.timedelta(days=30 * 6)
-    income = UserIncome.objects.filter(owner=request.user,
-                                       date__gte=six_months_ago, date__lte=todays_date)
+    incomes = UserIncome.objects.filter(owner=request.user,
+                                        date__gte=six_months_ago, date__lte=todays_date)
     finalrep = {}
 
     def get_source(income):
         return income.source
 
-    source_list = list(set(map(get_source, income)))
+    source_list = list(set(map(get_source, incomes)))
 
     def get_income_source_amount(source):
         amount = 0
-        filtered_by_source = income.filter(source=source)
+        filtered_by_source = incomes.filter(source=source)
 
         for item in filtered_by_source:
             amount += item.amount
         return amount
 
-    for x in income:
+    for x in incomes:
         for y in source_list:
             finalrep[y] = get_income_source_amount(y)
 
@@ -141,3 +142,26 @@ def income_source_summary(request):
 
 def userstats_view(request):
     return render(request, 'income/userstate.html')
+
+
+def exportt_excel(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['content-Disposition'] = 'attachment; filename=UserIncome' + str(datetime.datetime.now()) + '.xls'
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('UserIncome')
+    row_number = 0
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['Amount', 'Description', 'Source', 'Date']
+    for col_num in range(len(columns)):
+        ws.write(row_number, col_num, columns[col_num], font_style)
+
+        font_style = xlwt.XFStyle()
+        rows = UserIncome.objects.filter(owner=request.user).values_list('amount', 'description', 'source', 'date')
+        for row in rows:
+            row_number += 1
+            for col_num in range(len(row)):
+                ws.write(row_number, col_num, str(row[col_num]), font_style)
+        wb.save(response)
+        return response

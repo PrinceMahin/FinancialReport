@@ -52,5 +52,4 @@ const getChartData = () => {
       renderChart(data, labels);
     });
 };
-
 document.onload = getChartData();
