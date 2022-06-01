@@ -16,9 +16,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 
-# from django.template.loader import render_to_string
-
-
 # Create your views here.
 class EmailValidationView(View):
     def post(self, request):
@@ -62,12 +59,6 @@ class RegistrationView(View):
                 user.is_active = False
                 user.save()
 
-                # parth_to_view
-                # for domain
-                # relative url verification
-                # token
-                # encode uid
-
                 uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
 
                 domain = get_current_site(request).domain
@@ -80,7 +71,6 @@ class RegistrationView(View):
                 email_subject = 'Activate Your Account'
                 email_body = 'Hi\n ' + user.username + ' Please Use this link to Activate your account\n' + active_url
 
-                # template = render_to_string('base/email_template.html', {'username':request.user.profile.username})
                 email = EmailMessage(
                     email_subject,
                     email_body,
@@ -90,7 +80,7 @@ class RegistrationView(View):
                 )
                 email.fail_silently = False
                 email.send()
-                messages.success(request, 'Your account is successfully Registered')
+                messages.success(request, 'Please active ur account')
                 return render(request, 'authentication/register.html')
 
         return render(request, 'authentication/register.html')
@@ -207,18 +197,6 @@ class CompletePasswordReset(View):
             'uidb64': uidb64,
             'token': token
         }
-        # try:
-        #     user_id = force_str(urlsafe_base64_decode(uidb64))
-        #     user = User.objects.get(pk=user_id)
-        #
-        #     if not PasswordResetTokenGenerator().check_token(user, token):
-        #         messages.info(request, ' This Link is old , Use The new link')
-        #         return render(request, 'authentication/reset-password.html')
-        #
-        # except Exception as identifier:
-        #
-        #     pass
-        #
 
         return render(request, 'authentication/set-newpassword.html', context)
 

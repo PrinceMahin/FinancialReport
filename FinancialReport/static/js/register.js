@@ -48,7 +48,7 @@ usernameField.addEventListener('keyup', (e) => {
     const usernameVal = e.target.value;
 
     usernameSuccessOutput.style.disply = 'block';
-    // usernameSuccessOutput.textContent = `Checking ${usernameVal}`;
+  
 
     usernameField.classList.remove('is-invalid');
     feedBackArea.style.display='none';
